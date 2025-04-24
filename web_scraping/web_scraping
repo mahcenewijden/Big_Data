@@ -1,0 +1,80 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import time
+import random
+
+jobs = []
+max_pages = 1000
+scraped_pages = []
+
+session = requests.Session()
+headers = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Referer": "https://wuzzuf.net/",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+}
+
+def fetch_url(url, retries=3, delay=5):
+    for attempt in range(retries):
+        try:
+            response = session.get(url, headers=headers, timeout=30)
+            response.raise_for_status()
+            
+            if "security check" in response.text.lower():
+                print(f"Blocked detected on page {url}! Waiting 2 minutes...")
+                time.sleep(120)
+                continue
+                
+            return response.text
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt + 1} failed for {url}: {e}")
+            time.sleep(delay * (attempt + 1) + random.uniform(1, 3))
+    return None
+
+for page in range(0, max_pages):
+    url = f"https://wuzzuf.net/search/jobs/?start={page}"
+    
+    html_content = fetch_url(url)
+    if not html_content:
+        print(f"Stopping at page {page}")
+        break
+
+    soup = BeautifulSoup(html_content, 'html.parser')
+    print(f"Scraping page {page + 1}")
+
+    items = soup.find_all('div', class_='css-pkv5jc')
+    
+    if not items:
+        print(f"No jobs found on page {page + 1}")
+        break
+
+    for item in items:
+        try:
+            title_elem = item.find('h2', class_='css-m604qf') or item.find('h2')
+            company_elem = item.find('a', class_='css-17s97q8') or item.find('a')
+            link_elem = item.find('a', href=True)
+            
+            job_data = {
+                "Title": title_elem.text.strip(),
+                "Company": company_elem.text.strip(),
+                "Job Type": item.find('div', class_='css-1lh32fc').text.strip(),
+                "Location": item.find('span', class_='css-5wys0k').text.strip(),
+                "Link": "https://wuzzuf.net" + link_elem['href']
+            }
+            jobs.append(job_data)
+            
+        except Exception as e:
+            print(f"Error processing job: {str(e)}")
+            continue
+
+    time.sleep(random.uniform(5, 8) + (page * 0.2))
+
+df = pd.DataFrame(jobs)
+if not df.empty:
+    df.to_csv("wuzzuf_jobs.csv", index=False, encoding='utf-8-sig')
+    print(f"\nSuccess! Saved {len(df)} jobs")
+
+# Final completion message remains
+print("\nScraping process completed")
