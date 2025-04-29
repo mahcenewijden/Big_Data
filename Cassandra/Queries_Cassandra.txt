@@ -1,0 +1,158 @@
+**Importer un fichier CSV
+
+C:\Users\widjd>docker cp "C:/restaurants.csv" 0dcc22c8996a:/restaurants.csv
+Successfully copied 2.11MB to 0dcc22c8996a:/restaurants.csv
+
+C:\Users\widjd>docker cp "C:/restaurants_inspections.csv" 0dcc22c8996a:/restaurants_inspections.csv
+Successfully copied 82.5MB to 0dcc22c8996a:/restaurants_inspections.csv
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Liste de tous les restaurants
+
+SELECT * FROM Restaurant;
+
+RESULT:
+id       | borough       | buildingnum | cuisinetype
+ | name                                             | phone      | street                      | zipcode  
+----------+---------------+-------------+-----------------------------------------------------------------
+-+--------------------------------------------------+------------+-----------------------------+--------- 
+ 40786914 | STATEN ISLAND |        1465 |                                                         American
+ |                                    BOSTON MARKET | 7188151198 |               FOREST AVENUE |   10302  
+ 40366162 |        QUEENS |       11909 |                                                         American
+ |                                 LENIHAN'S SALOON | 7188469770 |             ATLANTIC AVENUE |   11418  
+ 41692194 |     MANHATTAN |         360 |                                                             Thai
+ |                                    BANGKOK HOUSE | 2125415943 |            WEST   46 STREET |   10036  
+ 41430956 |      BROOKLYN |        2225 |                                                        Caribbean
+ |                                TJ'S TASTY CORNER | 7184844783 |               TILDEN AVENUE |   11226  
+ 41395531 |        QUEENS |         126 |                                                         American
+ |                                NATHAN'S HOT DOGS | 7185958100 |            ROOSEVELT AVENUE |   11368  
+ 50005384 | STATEN ISLAND |         271 |                                                          Chinese
+---- More ----
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Liste des noms de restaurants
+
+SELECT name FROM Restaurant;
+
+RESULT:
+name
+--------------------------------------------------
+                                    BOSTON MARKET
+                                 LENIHAN'S SALOON
+                                    BANGKOK HOUSE
+                                TJ'S TASTY CORNER
+                                NATHAN'S HOT DOGS
+                                      YUMMY YUMMY
+                                   KING'S KITCHEN
+                                            CESCA
+                EL GUANACO RESTAURANT & PUPUSERIA
+                                        THE BROOK
+                               LEO'S DELI & GRILL
+---- More ----
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Nom et quartier (borough) du restaurant dont l’id est 41569764
+
+SELECT name, borough FROM Restaurant WHERE id = 41569764;
+
+RESULT:
+name    | borough
+---------+----------
+ BACCHUS | BROOKLYN
+
+(1 rows)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Dates et grades des inspections de ce restaurant
+
+SELECT inspectiondate, grade
+ FROM Inspection 
+WHERE idrestaurant = 41569764;
+
+RESULT:
+inspectiondate | grade
+----------------+-------
+     2013-06-27 |  null
+     2013-07-08 |     A
+     2013-12-26 |  null
+     2014-02-05 |     A
+     2014-07-17 |  null
+     2014-08-06 |     A
+     2015-01-08 |     A
+     2016-02-25 |     A
+
+(8 rows)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. Noms des restaurants de cuisine Française (French)
+
+SELECT name FROM Restaurant WHERE cuisinetype = 'French';
+
+RESULT:
+name
+--------------------------------
+                        MATISSE
+                        ALMANAC
+                   TOUT VA BIEN
+                          FELIX
+             CREPES ON COLUMBUS
+               THE BARONESS BAR
+                     THE SIMONE
+                      FP BAKERY
+                  VIN ET FLEURS
+       CAFE BOULUD/BAR PLEIADES
+                        COCOTTE
+                  Bourgeois Pig
+              DELICE & SARRASIN
+               LA TARTE FLAMBEE
+                   JEAN GEORGES
+                     MAISON MAY
+---- More ----
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. Noms des restaurants situés dans BROOKLYN (attribut borough; si vous recevez une erreur en retour notez-la bien)
+
+SELECT name FROM Restaurant WHERE borough = 'BROOKLYN' ALLOW FILTERING;
+
+RESULT:
+name
+--------------------------------------------
+                          TJ'S TASTY CORNER
+                             KING'S KITCHEN
+                         LEO'S DELI & GRILL
+                           JIN SUSHI & THAI
+                        CROWN FRIED CHICKEN
+                            BROOKLYN CAFE 1
+                       CRESCENT COFFEE SHOP
+                LA ROYALE BEER BURGER HOUSE
+                         CONNECTICUT MUFFIN
+                        GREENSTREETS SALADS
+                                  THE TOPAZ
+                             LA GUARIDA BAR
+                         MAMA ROZ SOUL FOOD
+                           HONG KONG BAKERY
+                 BROOKLYN BRIDGE GARDEN BAR
+                                THE CANTINE
+                              THE GUMBO BRO
+                          DAVEY'S ICE CREAM
+                        CROWN FRIED CHICKEN
+---- More ----
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------                          
+7. Grades et scores donnés pour une inspection pour le restaurant n°41569764 avec un score d’au moins 10
+
+SELECT grade, score FROM Inspection 
+WHERE idrestaurant = 41569764 AND score >= 10 ALLOW FILTERING;
+
+RESULT:
+grade | score
+-------+-------
+  null |    19
+     A |    10
+
+(2 rows)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+8. Grades (non nuls) des inspections dont le score est supérieur à 30
+
+SELECT COUNT(*) FROM Inspection
+            WHERE score > 30 AND grade IS NOT NULL ALLOW FILTERING;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+9. Nombre de lignes retournées par la requête précédente
+
+SELECT COUNT(*) FROM Inspection
+WHERE score > 30 AND grade IS NOT NULL
+ALLOW FILTERING;
